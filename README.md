@@ -10,3 +10,9 @@
 Напоминаем, что все три части работы нужно сдавать на ревью одновременно.
 
 Успехов!
+
+psql -h 127.0.0.1 -U app -d movies_database
+    SHOW search_path; 
+    SET search_path TO content,public; 
+
+psql -h 127.0.0.1 -U app -d movies_database -f movies_database.ddl 
