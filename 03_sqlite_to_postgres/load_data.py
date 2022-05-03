@@ -1,16 +1,10 @@
-import os
 import sqlite3
 
-import psycopg2
 from psycopg2.extensions import connection as _connection
-from psycopg2.extras import DictCursor
 
 from loaders import SQLiteLoader
 from savers import PostgresSaver
-
-from dotenv import load_dotenv
-
-load_dotenv()
+from db_managers import get_sqlite_conn, get_pg_conn
 
 
 def load_from_sqlite(connection: sqlite3.Connection, pg_conn: _connection):
@@ -23,13 +17,5 @@ def load_from_sqlite(connection: sqlite3.Connection, pg_conn: _connection):
 
 
 if __name__ == '__main__':
-    dsl = {
-        'dbname': os.environ.get('DB_NAME'),
-        'user': os.environ.get('DB_USER'),
-        'password': os.environ.get('DB_PASSWORD'),
-        'host': os.environ.get('DB_HOST', '127.0.0.1'),
-        'port': os.environ.get('DB_PORT', 5432)
-    }
-    with sqlite3.connect('db.sqlite') as sqlite_conn, psycopg2.connect(
-            **dsl, cursor_factory=DictCursor) as pg_conn:
+    with get_sqlite_conn('db.sqlite') as sqlite_conn, get_pg_conn() as pg_conn:
         load_from_sqlite(sqlite_conn, pg_conn)

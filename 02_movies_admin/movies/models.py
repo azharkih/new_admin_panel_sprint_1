@@ -28,9 +28,14 @@ class Genre(UUIDMixin, TimeStampedMixin):
         return self.name
 
     class Meta:
-        db_table = "content\".\"genre"
+        db_table = 'content\".\"genre'
         verbose_name = _('Genre')
         verbose_name_plural = _('Genres')
+        constraints = [
+            models.UniqueConstraint(
+                fields=['name'],
+                name='genre_name_idx'),
+        ]
 
 
 class FilmWork(UUIDMixin, TimeStampedMixin):
@@ -61,9 +66,13 @@ class FilmWork(UUIDMixin, TimeStampedMixin):
         return self.title
 
     class Meta:
-        db_table = "content\".\"film_work"
+        db_table = 'content\".\"film_work'
         verbose_name = _('film_work')
         verbose_name_plural = _('film_works')
+        indexes = [
+            models.Index(fields=['creation_date'],
+                         name='film_work_creation_date_idx'),
+        ]
 
 
 class GenreFilmWork(UUIDMixin):
@@ -72,7 +81,12 @@ class GenreFilmWork(UUIDMixin):
     created = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        db_table = "content\".\"genre_film_work"
+        db_table = 'content\".\"genre_film_work'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['film_work', 'genre'],
+                name='film_work_genre_idx'),
+        ]
 
 
 class Gender(models.TextChoices):
@@ -89,16 +103,30 @@ class Person(UUIDMixin, TimeStampedMixin):
         return self.full_name
 
     class Meta:
-        db_table = "content\".\"person"
+        db_table = 'content\".\"person'
         verbose_name = _('Person')
         verbose_name_plural = _('Persons')
 
 
 class PersonFilmWork(models.Model):
+    class PersonRoles(models.TextChoices):
+        ACTOR = 'actor', _('actor')
+        WRITER = 'writer', _('writer')
+        DIRECTOR = 'director', _('director')
+
     film_work = models.ForeignKey('FilmWork', on_delete=models.CASCADE)
     person = models.ForeignKey('Person', on_delete=models.CASCADE)
-    role = models.TextField(_('Role'), null=True)
+    role = models.TextField(
+        _('Role'), max_length=10, choices=PersonRoles.choices,
+        default=PersonRoles.ACTOR,
+    )
     created = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        db_table = "content\".\"person_film_work"
+        db_table = 'content\".\"person_film_work'
+
+        constraints = [
+            models.UniqueConstraint(
+                fields=['film_work', 'person', 'role'],
+                name='film_work_person_idx'),
+        ]

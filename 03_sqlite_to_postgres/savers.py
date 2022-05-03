@@ -8,10 +8,9 @@ from models import MOVIES_MODELS
 
 
 class PostgresSaver:
-    PAGE_SIZE = 5000
-
-    def __init__(self, connection: _connection):
+    def __init__(self, connection: _connection, page_size=None):
         self.connection = connection
+        self.page_size = 5000 if page_size is None else page_size
 
     def save_all_data(self, data: Generator[str, list[BaseModel], None]):
         """Метод сохранения всех данных в базу."""
@@ -28,5 +27,5 @@ class PostgresSaver:
         query = (f'INSERT INTO content.{table_name} ({fields_string}) '
                  f'VALUES ({values_string}) ON CONFLICT DO NOTHING; ')
         data = [tuple(getattr(row, field) for field in fields) for row in data]
-        execute_batch(curs, query, data, page_size=self.PAGE_SIZE)
+        execute_batch(curs, query, data, page_size=self.page_size)
         self.connection.commit()
